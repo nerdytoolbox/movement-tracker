@@ -18,7 +18,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-0">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center p-0">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-zinc-900 border border-zinc-800 rounded-t-3xl w-full max-w-lg max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between p-5 border-b border-zinc-800">
