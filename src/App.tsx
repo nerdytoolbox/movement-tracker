@@ -11,7 +11,7 @@ import { RemindersScreen } from './screens/RemindersScreen';
 export default function App() {
   return (
     <AppProvider>
-      <Router>
+      <Router basename="/movement-tracker">
         <div className="min-h-screen bg-zinc-950">
           <Routes>
             <Route path="/" element={<HomeScreen />} />
