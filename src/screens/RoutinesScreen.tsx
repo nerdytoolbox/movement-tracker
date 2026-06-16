@@ -11,6 +11,7 @@ import type { Routine } from '../types';
 export function RoutinesScreen() {
   const { recordMovement, todayLog } = useApp();
   const [selectedRoutine, setSelectedRoutine] = useState<Routine | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string; description: string; imageEmoji: string } | null>(null);
   const [completedToday, setCompletedToday] = useState<Set<string>>(
     new Set(todayLog?.routinesCompleted || [])
   );
@@ -76,24 +77,33 @@ export function RoutinesScreen() {
             </div>
           </div>
 
-          <div className="space-y-3 mb-6">
-            {selectedRoutine.exercises.map((re, i) => {
-              const exercise = EXERCISES.find(e => e.id === re.exerciseId);
-              if (!exercise) return null;
-              return (
-                <div key={i} className="flex gap-3 items-start p-3 bg-zinc-800 rounded-2xl">
-                  <span className="text-2xl">{exercise.imageEmoji}</span>
-                  <div>
-                    <div className="font-medium text-zinc-100">{exercise.name}</div>
-                    <div className="text-zinc-500 text-sm">{exercise.description.slice(0, 80)}...</div>
-                    <div className="text-zinc-600 text-xs mt-1">
-                      {re.reps ? `${re.reps} reps` : `${Math.ceil(re.durationSeconds / 60)}min`}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+           <div className="space-y-3 mb-6">
+             {selectedRoutine.exercises.map((re, i) => {
+               const exercise = EXERCISES.find(e => e.id === re.exerciseId);
+               if (!exercise) return null;
+               return (
+                 <button
+                   key={i}
+                   onClick={() => setSelectedExercise({
+                     id: exercise.id,
+                     name: exercise.name,
+                     description: exercise.description,
+                     imageEmoji: exercise.imageEmoji
+                   })}
+                   className="w-full text-left flex gap-3 items-start p-3 bg-zinc-800 rounded-2xl hover:bg-zinc-700 transition-colors"
+                 >
+                   <span className="text-2xl">{exercise.imageEmoji}</span>
+                   <div className="flex-1">
+                     <div className="font-medium text-zinc-100">{exercise.name}</div>
+                     <div className="text-zinc-500 text-sm">{exercise.description}</div>
+                     <div className="text-zinc-600 text-xs mt-1">
+                       {re.reps ? `${re.reps} reps` : `${Math.ceil(re.durationSeconds / 60)}min`}
+                     </div>
+                   </div>
+                 </button>
+               );
+             })}
+           </div>
 
           <Button
             size="xl"
@@ -101,9 +111,18 @@ export function RoutinesScreen() {
             disabled={completedToday.has(selectedRoutine.id)}
           >
             {completedToday.has(selectedRoutine.id) ? '✓ Done today!' : '▶ Start routine'}
-          </Button>
-        </Modal>
-      )}
-    </div>
-  );
-}
+           </Button>
+         </Modal>
+       )}
+
+       {selectedExercise && (
+         <Modal isOpen={true} title={selectedExercise.name} onClose={() => setSelectedExercise(null)}>
+           <div className="text-center mb-4">
+             <div className="text-5xl mb-3">{selectedExercise.imageEmoji}</div>
+           </div>
+           <p className="text-zinc-300 leading-relaxed">{selectedExercise.description}</p>
+         </Modal>
+       )}
+     </div>
+   );
+ }
