@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MOVEMENT_SNACKS } from '../data/snacks';
 import { useApp } from '../context/AppContext';
 import { Card } from '../components/ui/Card';
@@ -14,6 +14,31 @@ export function SnacksScreen() {
   const [completedToday, setCompletedToday] = useState<Set<string>>(
     new Set(todayLog?.snacksCompleted || [])
   );
+  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [isTimerActive, setIsTimerActive] = useState(false);
+
+  useEffect(() => {
+    if (selectedSnack && timeRemaining === 0) {
+      setTimeRemaining(selectedSnack.durationSeconds);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSnack]);
+
+  useEffect(() => {
+    if (!isTimerActive || timeRemaining <= 0) return;
+    
+    const interval = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          setIsTimerActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isTimerActive, timeRemaining]);
 
   function getRandomSnack() {
     const pool = MOVEMENT_SNACKS.filter(s => !completedToday.has(s.id));
@@ -61,7 +86,11 @@ export function SnacksScreen() {
           return (
             <Card
               key={snack.id}
-              onClick={() => setSelectedSnack(snack)}
+              onClick={() => {
+                setSelectedSnack(snack);
+                setTimeRemaining(0);
+                setIsTimerActive(false);
+              }}
               className={isDone ? 'opacity-60' : ''}
             >
               <div className="flex items-center gap-3">
@@ -91,25 +120,49 @@ export function SnacksScreen() {
         })}
       </div>
 
-      {selectedSnack && (
-         <Modal isOpen={true} title={selectedSnack.name} onClose={() => setSelectedSnack(null)}>
-           <div className="text-center mb-6">
-             <div className="text-6xl mb-3">{selectedSnack.emoji}</div>
-             <Badge variant="purple">{selectedSnack.durationSeconds}s</Badge>
-          </div>
-          <p className="text-zinc-300 mb-4 leading-relaxed">{selectedSnack.description}</p>
-          <div className="flex flex-wrap gap-2 mb-6">
-            {selectedSnack.tags.map(tag => <Badge key={tag}>{tag}</Badge>)}
-          </div>
-          <Button
-            size="xl"
-            onClick={() => markComplete(selectedSnack)}
-            disabled={completedToday.has(selectedSnack.id)}
-          >
-            {completedToday.has(selectedSnack.id) ? '✓ Done today!' : '✓ Mark complete'}
-          </Button>
-        </Modal>
-      )}
+       {selectedSnack && (
+          <Modal isOpen={true} title={selectedSnack.name} onClose={() => {
+            setSelectedSnack(null);
+            setIsTimerActive(false);
+          }}>
+            <div className="text-center mb-6">
+              <div className="text-6xl mb-4">{selectedSnack.emoji}</div>
+              <div className="bg-zinc-800 rounded-3xl p-8 mb-4">
+                <div className="text-5xl font-bold font-mono text-violet-400">
+                  {Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}
+                </div>
+              </div>
+              <div className="flex gap-2 justify-center mb-6">
+                <Button
+                  variant={isTimerActive ? 'secondary' : 'primary'}
+                  onClick={() => setIsTimerActive(!isTimerActive)}
+                >
+                  {isTimerActive ? '⏸ Pause' : '▶ Start'}
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setTimeRemaining(selectedSnack.durationSeconds);
+                    setIsTimerActive(false);
+                  }}
+                >
+                  ↻ Reset
+                </Button>
+              </div>
+            </div>
+            <p className="text-zinc-300 mb-4 leading-relaxed">{selectedSnack.description}</p>
+           <div className="flex flex-wrap gap-2 mb-6">
+             {selectedSnack.tags.map(tag => <Badge key={tag}>{tag}</Badge>)}
+           </div>
+           <Button
+             size="xl"
+             onClick={() => markComplete(selectedSnack)}
+             disabled={completedToday.has(selectedSnack.id)}
+           >
+             {completedToday.has(selectedSnack.id) ? '✓ Done today!' : '✓ Mark complete'}
+           </Button>
+         </Modal>
+       )}
     </div>
   );
 }
