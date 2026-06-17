@@ -9,7 +9,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'icons/*.png'],
+      includeAssets: ['icons/*.png'],
       manifest: {
         name: 'Movement Tracker',
         short_name: 'Move',
@@ -21,17 +21,17 @@ export default defineConfig({
         start_url: '/movement-tracker/',
         icons: [
           {
-            src: '/icons/icon-192.png',
+            src: '/icons/icon.png',
             sizes: '192x192',
             type: 'image/png',
           },
           {
-            src: '/icons/icon-512.png',
+            src: '/icons/icon.png',
             sizes: '512x512',
             type: 'image/png',
           },
           {
-            src: '/icons/icon-512.png',
+            src: '/icons/icon.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable',
