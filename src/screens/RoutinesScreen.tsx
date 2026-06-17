@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ROUTINES } from '../data/routines';
 import { EXERCISES } from '../data/exercises';
 import { useApp } from '../context/AppContext';
@@ -11,11 +11,35 @@ import type { Routine } from '../types';
 export function RoutinesScreen() {
   const { recordMovement, todayLog } = useApp();
   const [selectedRoutine, setSelectedRoutine] = useState<Routine | null>(null);
-  const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string; description: string; imageEmoji: string } | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string; description: string; imageEmoji: string; durationSeconds: number } | null>(null);
   const [completedToday, setCompletedToday] = useState<Set<string>>(
     new Set(todayLog?.routinesCompleted || [])
   );
   const [filter, setFilter] = useState<5 | 10 | 'all'>('all');
+  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [isTimerActive, setIsTimerActive] = useState(false);
+
+  useEffect(() => {
+    if (selectedExercise && timeRemaining === 0) {
+      setTimeRemaining(selectedExercise.durationSeconds);
+    }
+  }, [selectedExercise]);
+
+  useEffect(() => {
+    if (!isTimerActive || timeRemaining <= 0) return;
+    
+    const interval = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          setIsTimerActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isTimerActive, timeRemaining]);
 
   async function startRoutine(routine: Routine) {
     await recordMovement(undefined, routine.id);
@@ -82,24 +106,29 @@ export function RoutinesScreen() {
                const exercise = EXERCISES.find(e => e.id === re.exerciseId);
                if (!exercise) return null;
                return (
-                 <button
-                   key={i}
-                   onClick={() => setSelectedExercise({
-                     id: exercise.id,
-                     name: exercise.name,
-                     description: exercise.description,
-                     imageEmoji: exercise.imageEmoji
-                   })}
-                   className="w-full text-left flex gap-3 items-start p-3 bg-zinc-800 rounded-2xl hover:bg-zinc-700 transition-colors"
-                 >
+                   <button
+                     key={i}
+                     onClick={() => {
+                       setSelectedExercise({
+                         id: exercise.id,
+                         name: exercise.name,
+                         description: exercise.description,
+                         imageEmoji: exercise.imageEmoji,
+                         durationSeconds: exercise.durationSeconds
+                       });
+                       setTimeRemaining(0);
+                       setIsTimerActive(false);
+                     }}
+                    className="w-full text-left flex gap-3 items-start p-3 bg-zinc-800 rounded-2xl hover:bg-zinc-700 transition-colors"
+                  >
                    <span className="text-2xl">{exercise.imageEmoji}</span>
-                   <div className="flex-1">
-                     <div className="font-medium text-zinc-100">{exercise.name}</div>
-                     <div className="text-zinc-500 text-sm">{exercise.description}</div>
-                     <div className="text-zinc-600 text-xs mt-1">
-                       {re.reps ? `${re.reps} reps` : `${Math.ceil(re.durationSeconds / 60)}min`}
-                     </div>
-                   </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-zinc-100">{exercise.name}</div>
+                      <div className="text-zinc-500 text-sm">{exercise.description}</div>
+                      <div className="text-zinc-600 text-xs mt-1">
+                        {re.reps ? `${re.reps} reps` : `${re.durationSeconds}s`}
+                      </div>
+                    </div>
                  </button>
                );
              })}
@@ -116,9 +145,34 @@ export function RoutinesScreen() {
        )}
 
        {selectedExercise && (
-         <Modal isOpen={true} title={selectedExercise.name} onClose={() => setSelectedExercise(null)}>
-           <div className="text-center mb-4">
-             <div className="text-5xl mb-3">{selectedExercise.imageEmoji}</div>
+         <Modal isOpen={true} title={selectedExercise.name} onClose={() => {
+           setSelectedExercise(null);
+           setIsTimerActive(false);
+         }}>
+           <div className="text-center mb-6">
+             <div className="text-6xl mb-4">{selectedExercise.imageEmoji}</div>
+             <div className="bg-zinc-800 rounded-3xl p-8 mb-4">
+               <div className="text-5xl font-bold font-mono text-violet-400">
+                 {Math.floor(timeRemaining / 60)}:{String(timeRemaining % 60).padStart(2, '0')}
+               </div>
+             </div>
+             <div className="flex gap-2 justify-center mb-6">
+               <Button
+                 variant={isTimerActive ? 'secondary' : 'primary'}
+                 onClick={() => setIsTimerActive(!isTimerActive)}
+               >
+                 {isTimerActive ? '⏸ Pause' : '▶ Start'}
+               </Button>
+               <Button
+                 variant="secondary"
+                 onClick={() => {
+                   setTimeRemaining(selectedExercise.durationSeconds);
+                   setIsTimerActive(false);
+                 }}
+               >
+                 ↻ Reset
+               </Button>
+             </div>
            </div>
            <p className="text-zinc-300 leading-relaxed">{selectedExercise.description}</p>
          </Modal>

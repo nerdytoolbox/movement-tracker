@@ -71,12 +71,12 @@ export function SnacksScreen() {
                     <h3 className="font-semibold text-zinc-100">{snack.name}</h3>
                     {isDone && <span className="text-emerald-400 text-sm">✓</span>}
                   </div>
-                  <p className="text-zinc-500 text-sm truncate">{snack.description}</p>
-                  <div className="flex gap-1.5 mt-1.5 flex-wrap">
-                    <Badge variant="zinc">{Math.ceil(snack.durationSeconds / 60)}m</Badge>
-                    {snack.tags.slice(0, 2).map(tag => (
-                      <Badge key={tag} variant="zinc">{tag}</Badge>
-                    ))}
+                   <p className="text-zinc-500 text-sm truncate">{snack.description}</p>
+                   <div className="flex gap-1.5 mt-1.5 flex-wrap">
+                     <Badge variant="zinc">{snack.durationSeconds}s</Badge>
+                     {snack.tags.slice(0, 2).map(tag => (
+                       <Badge key={tag} variant="zinc">{tag}</Badge>
+                     ))}
                   </div>
                 </div>
                 <button
@@ -92,10 +92,10 @@ export function SnacksScreen() {
       </div>
 
       {selectedSnack && (
-        <Modal isOpen={true} title={selectedSnack.name} onClose={() => setSelectedSnack(null)}>
-          <div className="text-center mb-6">
-            <div className="text-6xl mb-3">{selectedSnack.emoji}</div>
-            <Badge variant="purple">{Math.ceil(selectedSnack.durationSeconds / 60)} min</Badge>
+         <Modal isOpen={true} title={selectedSnack.name} onClose={() => setSelectedSnack(null)}>
+           <div className="text-center mb-6">
+             <div className="text-6xl mb-3">{selectedSnack.emoji}</div>
+             <Badge variant="purple">{selectedSnack.durationSeconds}s</Badge>
           </div>
           <p className="text-zinc-300 mb-4 leading-relaxed">{selectedSnack.description}</p>
           <div className="flex flex-wrap gap-2 mb-6">
