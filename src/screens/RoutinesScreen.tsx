@@ -113,7 +113,7 @@ export function RoutinesScreen() {
                          id: exercise.id,
                          name: exercise.name,
                          description: exercise.description,
-                         imageEmoji: exercise.imageEmoji,
+                         imageEmoji: exercise.imageEmoji!,
                          durationSeconds: exercise.durationSeconds
                        });
                        setTimeRemaining(0);
