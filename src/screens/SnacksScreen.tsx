@@ -5,6 +5,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
+import { playTimerSound } from '../utils/sound';
 import type { MovementSnack } from '../types';
 
 export function SnacksScreen() {
@@ -31,6 +32,7 @@ export function SnacksScreen() {
       setTimeRemaining(prev => {
         if (prev <= 1) {
           setIsTimerActive(false);
+          playTimerSound();
           return 0;
         }
         return prev - 1;
